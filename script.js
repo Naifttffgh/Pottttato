@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// إعداداتك الخاصة (Firebase Config)
+// إعدادات Firebase الخاصة بك
 const firebaseConfig = {
     apiKey: "AIzaSyDeH8mGWwnR7exOP81TJYUKs-rUm-E2A-o",
     authDomain: "pottttato-855f1.firebaseapp.com",
@@ -12,58 +12,50 @@ const firebaseConfig = {
     measurementId: "G-QXSL9WQQM5"
 };
 
-// تشغيل Firebase
+// تشغيل الفايربيس
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const videoCol = collection(db, "potatoVideos");
 
-// الباسوردات
-const SECRET_PASS = "البطاطس سخانه خالص";
 const ADMIN_DELETE_PASS = "البطاطس بارده خالص";
 
-// --- الدوال والتحكم بالأحداث ---
-
-// تسجيل الدخول
-document.getElementById('loginBtn').onclick = () => {
-    const input = document.getElementById('passwordInput').value;
-    if (input === SECRET_PASS) {
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        loadSavedVideos(); 
-    } else {
-        alert("الهكر ممنوع! الباسورد غلط 🙃");
-    }
-};
-
-// فتح وإغلاق لوحة التحكم
+// دالة لفتح وإغلاق لوحة الإضافة
 const toggleAdmin = () => {
     const panel = document.getElementById('adminPanel');
     panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
 };
+
 document.getElementById('openAdminBtn').onclick = toggleAdmin;
 document.getElementById('closeAdminBtn').onclick = toggleAdmin;
 
-// إضافة فيديو للسحاب
+// إضافة فيديو جديد للسحاب
 document.getElementById('addVideoBtn').onclick = async () => {
     const url = document.getElementById('videoUrlInput').value;
     if (url.trim() !== "") {
-        await addDoc(videoCol, { url: url, createdAt: new Date() });
-        document.getElementById('videoUrlInput').value = '';
-        toggleAdmin();
+        try {
+            await addDoc(videoCol, {
+                url: url,
+                createdAt: serverTimestamp()
+            });
+            document.getElementById('videoUrlInput').value = '';
+            toggleAdmin();
+        } catch (e) {
+            alert("خطأ في الإضافة: " + e);
+        }
     } else {
-        alert("حط رابط فيديو يا بطل!");
+        alert("حط رابط فيديو أولاً!");
     }
 };
 
-// تحميل وعرض الفيديوهات (لحظياً)
-function loadSavedVideos() {
+// جلب الفيديوهات لحظياً
+function loadVideos() {
     const q = query(videoCol, orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
         const grid = document.getElementById('videoGrid');
         grid.innerHTML = ''; 
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            displayVideo(data.url, doc.id);
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            displayVideo(data.url, docSnap.id);
         });
     });
 }
@@ -74,22 +66,22 @@ function displayVideo(url, id) {
     card.className = 'video-card';
     card.innerHTML = `
         <video src="${url}" controls></video>
-        <p style="color: #888; font-size: 14px;">مخزن سحابي آمن ✅</p>
-        <button id="del-${id}" style="background: #ff4444; margin-top: 10px; width: auto; padding: 5px 15px; font-size: 12px;">حذف للفيديو 🗑️</button>
+        <button id="del-${id}" style="background: #ff4444; margin-top: 10px; width: auto; padding: 5px 15px; font-size: 12px;">حذف 🗑️</button>
     `;
     grid.appendChild(card);
-    
-    // ربط زر الحذف
     document.getElementById(`del-${id}`).onclick = () => deleteVideo(id);
 }
 
 // حذف فيديو
 async function deleteVideo(docId) {
-    const pass = prompt("أدخل باسورد المطور للحذف: 🤫");
+    const pass = prompt("باسورد الحذف للمطور:");
     if (pass === ADMIN_DELETE_PASS) {
         await deleteDoc(doc(db, "potatoVideos", docId));
-        alert("تم طرده بنجاح!");
+        alert("تم الحذف بنجاح!");
     } else {
-        alert("غلط!");
+        alert("الباسورد خطأ!");
     }
 }
+
+// تشغيل الجلب فور فتح الموقع
+loadVideos();

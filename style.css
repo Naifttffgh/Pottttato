@@ -6,22 +6,6 @@ body {
     overflow-x: hidden;
 }
 
-.full-screen {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: radial-gradient(circle, #222, #000);
-}
-
-.login-box {
-    background: #1e1e1e;
-    padding: 40px;
-    border-radius: 25px;
-    box-shadow: 0 0 30px rgba(255, 152, 0, 0.15);
-    text-align: center;
-}
-
 .container { padding: 40px 20px; text-align: center; }
 
 .video-grid {
@@ -58,10 +42,7 @@ video { width: 100%; border-radius: 10px; border: 1px solid #444; }
     cursor: pointer;
     box-shadow: 0 5px 15px rgba(0,0,0,0.6);
     z-index: 100;
-    transition: 0.3s;
 }
-
-.fab:hover { background: #e68a00; transform: rotate(90deg); }
 
 .admin-panel {
     position: fixed;
